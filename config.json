@@ -1,0 +1,38 @@
+{
+    "min-temperature": 25.2,
+    "max-temperature": 28.5,
+    "power-on-low-temperature": 30.0,
+    "warming-time-minutes": 1,
+    "work-time-minutes": 1,
+    "work-normal-temperature": 28.2,
+    "work-treshold-temperature": 28.5,
+    "cooler-stop-delay": 1,
+    "pins": {
+        "relay": {
+            "power_relay_pin": 6,
+            "power_relay_2_pin": 13,
+            "cooler_relay_pin": 5,
+            "valve_1_relay_pin": 19,
+            "valve_2_relay_pin": 26
+        },
+        "water_level": {
+            "water_pin_1": 17,
+            "water_pin_2": 27
+        },
+        "lcd": {
+            "data_pin": 7,
+            "clk_pin": 8,
+            "reset_pin": 25
+        },
+        "buttons": {
+            "cycle_1_pin": 11,
+            "cycle_2_pin": 9
+        }
+    },
+    "one-wire": {
+        "temperature": {
+            "sensor_1": "28-0214811929ff",
+            "sensor_2": "28-0417301b9dff"
+        }
+    }
+}
