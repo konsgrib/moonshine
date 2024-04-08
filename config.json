@@ -25,8 +25,8 @@
             "reset_pin": 25
         },
         "buttons": {
-            "cycle_1_pin": 11,
-            "cycle_2_pin": 9
+            "cycle_1_pin": 9,
+            "cycle_2_pin": 11
         }
     },
     "one-wire": {

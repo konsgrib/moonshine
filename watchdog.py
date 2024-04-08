@@ -52,12 +52,12 @@ lcd.display_text("                ".center(16, " "), 0, 1)
 lcd.display_text("Press any key".center(16, " "), 0, 2)
 
 
-def is_process_running(process_name):
-    for proc in psutil.process_iter(["name"]):
-        if process_name.lower() in proc.info["name"].lower():
-            logging.info(f"The process {process_name} already running")
+def is_process_running(process_path):
+    for proc in psutil.process_iter(['pid', 'name', 'exe', 'cmdline']):
+        if process_path.lower() in ' '.join(proc.info['cmdline']).lower():
+            logging.info(f"The process {process_path} already running")
             return True
-    logging.info(f"The process {process_name} will be created")
+    logging.info(f"The process {process_path} will be created")
     return False
 
 
@@ -102,7 +102,11 @@ GPIO.add_event_detect(cycle_2_bt_pin, GPIO.BOTH, callback=callback2)
 while True:
     time.sleep(1)
     now = datetime.now()
-    d_now_str = now.strftime("%Y-%m-%d")
-    t_now_str = now.strftime("%H:%M:%S")
-    lcd.display_text(f"{d_now_str}".center(16, " "), 0, 0)
-    lcd.display_text(f"{t_now_str}".center(16, " "), 0, 1)
+    is_cycle_1_running = is_process_running("cycle_1.py")
+    is_cycle_2_running = is_process_running("cycle_2.py")
+
+    if not (is_cycle_1_running or is_cycle_2_running):
+        d_now_str = now.strftime("%Y-%m-%d")
+        t_now_str = now.strftime("%H:%M:%S")
+        lcd.display_text(f"{d_now_str}".center(16, " "), 0, 0)
+        lcd.display_text(f"{t_now_str}".center(16, " "), 0, 1)
