@@ -1,4 +1,5 @@
 import os
+import subprocess
 import json
 from logger import logger
 
@@ -20,3 +21,9 @@ def set_environment_variables_from_json(json_file_path):
         config_data = json.load(f)
 
     set_env_vars(config_data)
+
+
+def get_one_wire_device_ids(file):
+    command = "ls -l /sys/bus/w1/devices"
+    with open(file, "w") as outfile:
+        subprocess.run(command, shell=True, stdout=outfile, universal_newlines=True)

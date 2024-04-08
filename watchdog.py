@@ -3,19 +3,22 @@
 import os
 import RPi.GPIO as GPIO
 import time
+from datetime import datetime
 import logging
 from logging.handlers import RotatingFileHandler
 
 import subprocess
 import psutil
-from utils import set_environment_variables_from_json
+from utils import set_environment_variables_from_json, get_one_wire_device_ids
+from lcd.lcd import Lcd
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-log_path = os.path.join(dir_path, "watchdog.log")
-log_path = "/var/log/watchdog.log"
 
-logger = logging.getLogger('') 
-logger.setLevel(logging.INFO) 
+log_path = "/var/log/watchdog.log"
+now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+logger = logging.getLogger("")
+logger.setLevel(logging.INFO)
 handler = RotatingFileHandler(log_path, maxBytes=2000, backupCount=10)
 formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
@@ -34,8 +37,19 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(cycle_1_bt_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(cycle_2_bt_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
+LCD_DATA_PIN = int(os.environ.get("pins_lcd_data_pin"))
+LCD_CLK_PIN = int(os.environ.get("pins_lcd_clk_pin"))
+LCD_RESET_PIN = int(os.environ.get("pins_lcd_reset_pin"))
+
 logging.info(f"Settings: {cycle_1_bt_pin}...")
 logging.info(f"Settings: {cycle_2_bt_pin}...")
+
+
+lcd = Lcd(LCD_DATA_PIN, LCD_CLK_PIN, LCD_RESET_PIN)
+lcd.clear()
+lcd.display_text("                ".center(16, " "), 0, 0)
+lcd.display_text("                ".center(16, " "), 0, 1)
+lcd.display_text("Press any key".center(16, " "), 0, 2)
 
 
 def is_process_running(process_name):
@@ -79,9 +93,16 @@ def callback2(channel):
         logging.error(str(e))
 
 
+file_path = os.path.join(dir_path, "w1.txt")
+get_one_wire_device_ids(file_path)
 
 GPIO.add_event_detect(cycle_1_bt_pin, GPIO.BOTH, callback=callback)
 GPIO.add_event_detect(cycle_2_bt_pin, GPIO.BOTH, callback=callback2)
 
 while True:
     time.sleep(1)
+    now = datetime.now()
+    d_now_str = now.strftime("%Y-%m-%d")
+    t_now_str = now.strftime("%H:%M:%S")
+    lcd.display_text(f"{d_now_str}".center(16, " "), 0, 0)
+    lcd.display_text(f"{t_now_str}".center(16, " "), 0, 1)

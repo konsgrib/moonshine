@@ -117,15 +117,30 @@ def cycle_two() -> None:
                 0,
                 1,
             )
-            print(pm, " ", pl," " ,c1 ," ",v1," ", v2, " ", w1.value," ",w2.value, " ")
+            print(
+                pm,
+                " ",
+                pl,
+                " ",
+                c1,
+                " ",
+                v1,
+                " ",
+                v2,
+                " ",
+                w1.value,
+                " ",
+                w2.value,
+                " ",
+            )
             lcd.display_text(f"Temp1:{t1.value}".ljust(16, " "), 0, 2)
             lcd.display_text(f"Temp2:{t2.value}".ljust(16, " "), 0, 3)
-            if t1.value >= MIN_TEMPERATURE and not c1: # starting cooling process
+            if t1.value >= MIN_TEMPERATURE and not c1:  # starting cooling process
                 print("starting cooling process")
                 logger.info("Starting coolant...")
                 cooler_relay.update_state(1)
             if t2.value >= POWER_ON_LOW_TEMPERATURE:
-                if warming_start_time == 0: # starting warming process
+                if warming_start_time == 0:  # starting warming process
                     logger.info("starting warming process")
                     warming_start_time = time.time()
                     logger.info("Starting power low procedure...")
@@ -136,11 +151,13 @@ def cycle_two() -> None:
                         logger.info("starting Pl")
                         power_relay_low.update_state(1)
                         warming_end_time = time.time() + WARMING_TIME * 60
-            if pl:            
-                if 0 < warming_end_time <= time.time() and not v1 and not v2: # droping 1st moonshine
+            if pl:
+                if (
+                    0 < warming_end_time <= time.time() and not v1 and not v2
+                ):  # droping 1st moonshine
                     logger.info("droping 1st moonshine")
                     valve_1_relay.update_state(1)
-                if not v2 and v1 and w2.value == "On": # WORK process starting
+                if not v2 and v1 and w2.value == "On":  # WORK process starting
                     logger.info("WORK process starting")
                     # warming_end_time = 0
                     working_start_time = time.time()
@@ -148,13 +165,15 @@ def cycle_two() -> None:
                     valve_1_relay.update_state(0)
                     time.sleep(2)
                     valve_2_relay.update_state(1)
-                if v2:    
-                    if 0 < working_end_time <= time.time(): # starting to measure t2
+                if v2:
+                    if 0 < working_end_time <= time.time():  # starting to measure t2
                         logger.info("starting to measure t2")
                         t2_temperatures.append(t2.value)
-                        average_temperature = sum(t2_temperatures) / len(t2_temperatures)
-                        logger.info(average_temperature," ",t2.value)
-                        if t2.value > average_temperature + 0.3: # final pills
+                        average_temperature = sum(t2_temperatures) / len(
+                            t2_temperatures
+                        )
+                        logger.info(average_temperature, " ", t2.value)
+                        if t2.value > average_temperature + 0.3:  # final pills
                             logger.info("Stopping all processes")
                             lcd.clear()
                             lcd.display_text("Stopping...".center(16, "*"), 0, 0)
@@ -162,13 +181,20 @@ def cycle_two() -> None:
                             valve_2_relay.update_state(0)
                             cooler_relay.update_state(0)
                             process_end_time = time.time()
-                            total_run_time_minutes = round((process_end_time - process_start_time) / 60, 1)
+                            total_run_time_minutes = round(
+                                (process_end_time - process_start_time) / 60, 1
+                            )
                             logger.info("Program dinished")
                             lcd.clear()
                             lcd.display_text("Cycle 2 finished".center(16, "*"), 0, 0)
-                            lcd.display_text(f"Total time: {str(total_run_time_minutes)}".center(16, "*"), 0, 0)
+                            lcd.display_text(
+                                f"Total time: {str(total_run_time_minutes)}".center(
+                                    16, "*"
+                                ),
+                                0,
+                                0,
+                            )
                             break
-
 
         except KeyboardInterrupt:
             cooler_relay.update_state(0)
@@ -186,6 +212,6 @@ def cycle_two() -> None:
             GPIO.cleanup()
             break
 
+
 if __name__ == "__main__":
     cycle_two()
-
