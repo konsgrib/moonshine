@@ -32,12 +32,16 @@ WORK_NORMAL_TEMPERATURE = float(os.environ.get("work-normal-temperature"))
 WORK_TRESHOLD_TEMPERATURE = float(os.environ.get("work-treshold-temperature"))
 
 COLD_VALVE_DELAY = int(os.environ.get("cooler-stop-delay"))
+POWER_IN_CLICKS = int(os.environ.get("power_inc_clicks"))
 # relays
 POWER_RELAY_PIN = int(os.environ.get("pins_relay_power_relay_pin"))
 POWER_RELAY_2_PIN = int(os.environ.get("pins_relay_power_relay_2_pin"))
 COOLER_RELAY_PIN = int(os.environ.get("pins_relay_cooler_relay_pin"))
 VALVE_1_PIN = int(os.environ.get("pins_relay_valve_1_relay_pin"))
 VALVE_2_PIN = int(os.environ.get("pins_relay_valve_2_relay_pin"))
+POWER_INC_PIN = int(os.environ.get("pins_relay_power_inc_pin"))
+POWER_DEC_PIN = int(os.environ.get("pins_relay_power_dec_pin"))
+
 # display
 LCD_DATA_PIN = int(os.environ.get("pins_lcd_data_pin"))
 LCD_CLK_PIN = int(os.environ.get("pins_lcd_clk_pin"))
@@ -68,6 +72,9 @@ power_relay = RelayCreator(POWER_RELAY_PIN)
 power_relay_low = RelayCreator(POWER_RELAY_2_PIN)
 valve_1_relay = RelayCreator(VALVE_1_PIN)
 valve_2_relay = RelayCreator(VALVE_2_PIN)
+power_inc_relay = RelayCreator(POWER_INC_PIN)
+power_dec_relay = RelayCreator(POWER_DEC_PIN)
+
 
 
 def get_symbol(a):
@@ -79,6 +86,7 @@ def cycle_two() -> None:
     logger.info("Start")
     process_start_time = time.time()
     t2_temperatures = []
+    step_nr = 1
     stop_temperature = 0
     warming_start_time = 0
     warming_end_time = 0
@@ -89,6 +97,11 @@ def cycle_two() -> None:
     lcd.display_text("Starting".center(16, "*"), 0, 1)
     power_relay_low.update_state(0)
     power_state = power_relay.update_state(1)
+    for _ in range(POWER_IN_CLICKS + 10):
+        power_inc_relay.update_state(1)
+        time.sleep(0.5)
+        power_inc_relay.update_state(0)
+        time.sleep(0.5)
     cooler_relay.update_state(0)
     valve_1_relay.update_state(0)
     valve_2_relay.update_state(0)
@@ -106,13 +119,13 @@ def cycle_two() -> None:
             w1 = water_1.get_value()
             w2 = water_2.get_value()
             pm = power_relay.get_state()
-            pl = power_relay_low.get_state()
+            pl = 0
             c1 = cooler_relay.get_state()
             v1 = valve_1_relay.get_state()
             v2 = valve_2_relay.get_state()
-            lcd.display_text("Pm Pl W V1 V2 Pr".ljust(16, " "), 0, 0)
+            lcd.display_text("S Pm W V1 V2 Pr".ljust(16, " "), 0, 0)
             lcd.display_text(
-                f"{get_symbol(pm)}  {get_symbol(pl)}  {get_symbol(c1)} "
+                f"{str(step_nr)}  {get_symbol(pm)}  {get_symbol(c1)} "
                 f"{get_symbol(v1)}  {get_symbol(v2)}  2".ljust(16, " "),
                 0,
                 1,
@@ -138,36 +151,44 @@ def cycle_two() -> None:
             if t1.value >= MIN_TEMPERATURE and not c1:  # starting cooling process
                 print("starting cooling process")
                 logger.info("Starting coolant...")
+                step_nr+=1 #2
                 cooler_relay.update_state(1)
             if t2.value >= POWER_ON_LOW_TEMPERATURE:
                 if warming_start_time == 0:  # starting warming process
                     logger.info("starting warming process")
+                    step_nr+=1 #3
                     warming_start_time = time.time()
                     logger.info("Starting power low procedure...")
-                    logger.info("stopping Pm")
-                    power_relay.update_state(0)
-                else:
-                    if time.time() >= warming_start_time + 5 and not pl:
-                        logger.info("starting Pl")
-                        power_relay_low.update_state(1)
-                        warming_end_time = time.time() + WARMING_TIME * 60
-            if pl:
+                    # decreasing temperature to 70 on controller
+                    for _ in range(POWER_IN_CLICKS):
+                        power_dec_relay.update_state(1)
+                        time.sleep(0.5)
+                        power_dec_relay.update_state(0)
+                        time.sleep(0.5)
+                    step_nr+=1 #4
+
+                    warming_end_time = time.time() + WARMING_TIME * 60
+            if step_nr > 3:
                 if (
                     0 < warming_end_time <= time.time() and not v1 and not v2
                 ):  # droping 1st moonshine
                     logger.info("droping 1st moonshine")
+                    step_nr+=1 #5
                     valve_1_relay.update_state(1)
                 if not v2 and v1 and w2.value == "On":  # WORK process starting
                     logger.info("WORK process starting")
-                    # warming_end_time = 0
+                    step_nr+=1 #6
                     working_start_time = time.time()
                     working_end_time = working_start_time + WORK_TIME * 60
+                    step_nr+=1 #7
                     valve_1_relay.update_state(0)
                     time.sleep(2)
                     valve_2_relay.update_state(1)
+                    step_nr+=1 # 8
                 if v2:
                     if 0 < working_end_time <= time.time():  # starting to measure t2
                         logger.info("starting to measure t2")
+                        step_nr+=1 #9
                         t2_temperatures.append(t2.value)
                         average_temperature = sum(t2_temperatures) / len(
                             t2_temperatures
@@ -175,6 +196,7 @@ def cycle_two() -> None:
                         logger.info(average_temperature, " ", t2.value)
                         if t2.value > average_temperature + 0.3:  # final pills
                             logger.info("Stopping all processes")
+                            step_nr+=1 # 10 finish
                             lcd.clear()
                             lcd.display_text("Stopping...".center(16, "*"), 0, 0)
                             power_relay_low.update_state(0)

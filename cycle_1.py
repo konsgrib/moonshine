@@ -26,12 +26,15 @@ set_environment_variables_from_json(config_path)
 MIN_TEMPERATURE = float(os.environ.get("min-temperature"))
 MAX_TEMPERATURE = float(os.environ.get("max-temperature"))
 COLD_VALVE_DELAY = int(os.environ.get("cooler-stop-delay"))
+POWER_IN_CLICKS = int(os.environ.get("power_inc_clicks"))
 # relays
 POWER_RELAY_PIN = int(os.environ.get("pins_relay_power_relay_pin"))
 POWER_RELAY_2_PIN = int(os.environ.get("pins_relay_power_relay_2_pin"))
 COOLER_RELAY_PIN = int(os.environ.get("pins_relay_cooler_relay_pin"))
 VALVE_1_PIN = int(os.environ.get("pins_relay_valve_1_relay_pin"))
 VALVE_2_PIN = int(os.environ.get("pins_relay_valve_2_relay_pin"))
+POWER_INC_PIN = int(os.environ.get("pins_relay_power_inc_pin"))
+POWER_DEC_PIN = int(os.environ.get("pins_relay_power_dec_pin"))
 # display
 LCD_DATA_PIN = int(os.environ.get("pins_lcd_data_pin"))
 LCD_CLK_PIN = int(os.environ.get("pins_lcd_clk_pin"))
@@ -60,7 +63,8 @@ cooler_relay = RelayCreator(COOLER_RELAY_PIN)
 power_relay = RelayCreator(POWER_RELAY_PIN)
 valve_1_relay = RelayCreator(VALVE_1_PIN)
 valve_2_relay = RelayCreator(VALVE_2_PIN)
-
+power_inc_relay = RelayCreator(POWER_INC_PIN)
+power_dec_relay = RelayCreator(POWER_DEC_PIN)
 
 def get_symbol(a):
     ok_list = [1, "On"]
@@ -74,6 +78,11 @@ def cycle_one() -> None:
     lcd.display_text("Cycle 1".center(16, "*"), 0, 0)
     lcd.display_text("Starting".center(16, "*"), 0, 1)
     power_state = power_relay.update_state(1)
+    for _ in range(POWER_IN_CLICKS):
+        power_inc_relay.update_state(1)
+        time.sleep(0.5)
+        power_inc_relay.update_state(0)
+        time.sleep(0.5)
     cooler_relay.update_state(0)
     logger.info(f"RELAY: {power_state}")
 

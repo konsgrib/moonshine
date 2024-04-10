@@ -7,13 +7,16 @@
     "work-normal-temperature": 28.2,
     "work-treshold-temperature": 28.5,
     "cooler-stop-delay": 1,
+    "power_inc_clicks": 30,
     "pins": {
         "relay": {
             "power_relay_pin": 26,
             "power_relay_2_pin": 5,
             "cooler_relay_pin": 6,
             "valve_1_relay_pin": 13,
-            "valve_2_relay_pin": 19
+            "valve_2_relay_pin": 19,
+            "power_inc_pin": 23,
+            "power_dec_pin": 24
         },
         "water_level": {
             "water_pin_1": 17,
