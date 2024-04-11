@@ -57,7 +57,6 @@ def is_process_running(process_path):
         if process_path.lower() in ' '.join(proc.info['cmdline']).lower():
             logging.info(f"The process {process_path} already running")
             return True
-    logging.info(f"The process {process_path} will be created")
     return False
 
 

@@ -8,7 +8,7 @@ log_path = os.path.join(dir_path, "moonshine.log")
 
 logger = logging.getLogger("")
 logger.setLevel(logging.INFO)
-handler = RotatingFileHandler(log_path, maxBytes=2000, backupCount=10)
+handler = RotatingFileHandler(log_path, maxBytes=20000, backupCount=10)
 formatter = logging.Formatter(
     "%(asctime)s - %(filename)s - %(levelname)s - %(message)s"
 )
