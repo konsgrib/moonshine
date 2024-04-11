@@ -10,11 +10,11 @@
     "power_inc_clicks": 30,
     "pins": {
         "relay": {
-            "power_relay_pin": 26,
-            "power_relay_2_pin": 5,
-            "cooler_relay_pin": 6,
+            "power_relay_pin": 19,
+            "power_relay_2_pin": 6,
+            "cooler_relay_pin": 26,
             "valve_1_relay_pin": 13,
-            "valve_2_relay_pin": 19,
+            "valve_2_relay_pin": 5,
             "power_inc_pin": 23,
             "power_dec_pin": 24
         },
@@ -29,13 +29,14 @@
         },
         "buttons": {
             "cycle_1_pin": 9,
-            "cycle_2_pin": 11
+            "cycle_2_pin": 11,
+            "cycle_3_pin": 10
         }
     },
     "one-wire": {
         "temperature": {
-            "sensor_1": "28-0214811929ff",
-            "sensor_2": "28-0417301b9dff"
+            "sensor_1": "28-42f7d445552f",
+            "sensor_2": "28-5be6d445359c"
         }
     }
 }
