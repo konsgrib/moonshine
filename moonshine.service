@@ -2,7 +2,7 @@
 Description=Monitor GPIO pin
 
 [Service]
-ExecStart=/home/griban/Projects/moonshine/.venv/bin/python /home/griban/Projects/moonshine/watchdog.py
+ExecStart=/home/pi/Projects/moonshine/.venv/bin/python /home/pi/Projects/moonshine/watchdog.py
 StandardOutput=append:/var/log/watchdog.log
 StandardError=append:/var/log/watchdog_error.log
 Restart=always

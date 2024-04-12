@@ -96,6 +96,7 @@ def cycle_two() -> None:
     lcd.display_text("Cycle 2".center(16, "*"), 0, 0)
     lcd.display_text("Starting".center(16, "*"), 0, 1)
     power_relay_low.update_state(0)
+    cooler_relay.update_state(0)
     power_state = power_relay.update_state(1)
     for _ in range(POWER_IN_CLICKS + 10):
         power_inc_relay.update_state(1)
@@ -125,7 +126,7 @@ def cycle_two() -> None:
             v2 = valve_2_relay.get_state()
             lcd.display_text("S Pm W V1 V2 Pr".ljust(16, " "), 0, 0)
             lcd.display_text(
-                f"{str(step_nr)}  {get_symbol(pm)}  {get_symbol(c1)} "
+                f"{str(step_nr)} {get_symbol(pm)}  {get_symbol(c1)} "
                 f"{get_symbol(v1)}  {get_symbol(v2)}  2".ljust(16, " "),
                 0,
                 1,
@@ -149,16 +150,18 @@ def cycle_two() -> None:
             lcd.display_text(f"Temp1:{t1.value}".ljust(16, " "), 0, 2)
             lcd.display_text(f"Temp2:{t2.value}".ljust(16, " "), 0, 3)
             if t1.value >= MIN_TEMPERATURE and not c1:  # starting cooling process
+                step_nr+=1 #2
                 print("starting cooling process")
                 logger.info("Starting coolant...")
-                step_nr+=1 #2
                 cooler_relay.update_state(1)
             if t2.value >= POWER_ON_LOW_TEMPERATURE:
                 if warming_start_time == 0:  # starting warming process
-                    logger.info("starting warming process")
                     step_nr+=1 #3
+                    logger.info("starting warming process")
+                    print("starting cooling process")
                     warming_start_time = time.time()
                     logger.info("Starting power low procedure...")
+                    print("Starting power low procedure")
                     # decreasing temperature to 70 on controller
                     for _ in range(POWER_IN_CLICKS):
                         power_dec_relay.update_state(1)
@@ -172,12 +175,14 @@ def cycle_two() -> None:
                 if (
                     0 < warming_end_time <= time.time() and not v1 and not v2
                 ):  # droping 1st moonshine
-                    logger.info("droping 1st moonshine")
                     step_nr+=1 #5
+                    logger.info("droping 1st moonshine")
+                    print("droping 1st moonshine")
                     valve_1_relay.update_state(1)
                 if not v2 and v1 and w2.value == "On":  # WORK process starting
-                    logger.info("WORK process starting")
                     step_nr+=1 #6
+                    logger.info("WORK process starting")
+                    print("WORK process starting")
                     working_start_time = time.time()
                     working_end_time = working_start_time + WORK_TIME * 60
                     step_nr+=1 #7
@@ -185,18 +190,21 @@ def cycle_two() -> None:
                     time.sleep(2)
                     valve_2_relay.update_state(1)
                     step_nr+=1 # 8
+                    average_temperature = 0.0 #TODO find better solution for this
                 if v2:
                     if 0 < working_end_time <= time.time():  # starting to measure t2
                         logger.info("starting to measure t2")
-                        step_nr+=1 #9
+                        print("starting to measure t2")
+                        if step_nr < 9:
+                            step_nr+=1 #9
                         t2_temperatures.append(t2.value)
                         average_temperature = sum(t2_temperatures) / len(
                             t2_temperatures
                         )
-                        logger.info(average_temperature, " ", t2.value)
+                        logger.info(f"{round(average_temperature, 2)} / {t2.value}")
                         if t2.value > average_temperature + 0.3:  # final pills
                             logger.info("Stopping all processes")
-                            step_nr+=1 # 10 finish
+                            print("Stopping all processes")
                             lcd.clear()
                             lcd.display_text("Stopping...".center(16, "*"), 0, 0)
                             power_relay_low.update_state(0)
@@ -210,7 +218,7 @@ def cycle_two() -> None:
                             lcd.clear()
                             lcd.display_text("Cycle 2 finished".center(16, "*"), 0, 0)
                             lcd.display_text(
-                                f"Total time: {str(total_run_time_minutes)}".center(
+                                f"Time: {str(total_run_time_minutes)} min".center(
                                     16, "*"
                                 ),
                                 0,

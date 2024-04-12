@@ -67,8 +67,8 @@ def callback(channel):
             if not is_process_running("cycle_1.py"):
                 subprocess.run(
                     [
-                        "/home/griban/Projects/moonshine/.venv/bin/python",
-                        "/home/griban/Projects/moonshine/cycle_1.py",
+                        "/home/pi/Projects/moonshine/.venv/bin/python",
+                        "/home/pi/Projects/moonshine/cycle_1.py",
                     ]
                 )
 
@@ -83,13 +83,44 @@ def callback2(channel):
             if not is_process_running("cycle_2.py"):
                 subprocess.run(
                     [
-                        "/home/griban/Projects/moonshine/.venv/bin/python",
-                        "/home/griban/Projects/moonshine/cycle_2.py",
+                        "/home/pi/Projects/moonshine/.venv/bin/python",
+                        "/home/pi/Projects/moonshine/cycle_2.py",
                     ]
                 )
 
     except Exception as e:
         logging.error(str(e))
+
+
+
+
+def callback(channel):
+    button_state = GPIO.input(channel)
+    if button_state == False:
+        if channel == cycle_1_bt_pin:
+            print("Button 1 Pressed")
+            logging.info("Starting procedure 1!")
+            if not is_process_running("cycle_1.py"):
+                  subprocess.run(
+                    [
+                        "/home/pi/Projects/moonshine/.venv/bin/python",
+                        "/home/pi/Projects/moonshine/cycle_1.py",
+                    ]
+                )              
+        elif channel == cycle_2_bt_pin:
+            print("Button 2 Pressed")
+            logging.info("Starting procedure 2!")
+            if not is_process_running("cycle_2.py"):
+                subprocess.run(
+                    [
+                        "/home/pi/Projects/moonshine/.venv/bin/python",
+                        "/home/pi/Projects/moonshine/cycle_2.py",
+                    ]
+                )
+
+
+
+
 
 
 file_path = os.path.join(dir_path, "w1.txt")
